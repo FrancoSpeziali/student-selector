@@ -8,8 +8,8 @@ import { CLICK_RANDOMISE, CLICK_RESET } from './constants/eventTypes.js';
 class StudentPickerAppError extends Error {}
 
 class StudentPickerApp {
-    constructor({ students, images }) {
-        this.parent = document.body;
+    constructor({ parent, students, images }) {
+        this.parent = parent;
         this.students = students.map((student, index) => {
             return {
                 name: student,
@@ -19,7 +19,6 @@ class StudentPickerApp {
         });
         this.images = images;
 
-        this.pickerControls = new PickerControls(this.parent);
         this.studentList = new StudentList(this.parent, students);
         this.studentGallery = new StudentGallery(this.parent);
 
@@ -61,7 +60,7 @@ class StudentPickerApp {
 
         return new Promise((resolve) => {
 
-            const count = 10;
+            const count = 20;
 
             let rolls = 0;
 
@@ -87,7 +86,7 @@ class StudentPickerApp {
                         resolve();
                     }
     
-                }, 100);
+                }, 120);
             }
     
             roll();
@@ -101,4 +100,5 @@ class StudentPickerApp {
     }
 }
 
-new StudentPickerApp({ students, images });
+new StudentPickerApp({ parent: document.body, students, images });
+new PickerControls(document.body);

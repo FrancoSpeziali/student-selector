@@ -1,90 +1,104 @@
-import StudentPickerControls from './Components/StudentPicker/StudentPickerControls.js';
-import StudentPickerGallery from './Components/StudentPicker/StudentPickerGallery.js';
+import PickerControls from './Components/PickerControls/PickerControls.js';
+import StudentGallery from './Components/StudentGallery/StudentGallery.js';
+import StudentList from './Components/StudentList/StudentList.js';
+import { pickRandomArrayItem } from './lib/lib.js';
+import { students, images } from './config.js';
+import { CLICK_RANDOMISE, CLICK_RESET } from './constants/eventTypes.js';
 
-class App {
-    constructor({ element, students, imageUrls }) {
-        this.parentElement = element;
-        this.originalStudentList = students;
-        this.students = students;
+class StudentPickerAppError extends Error {}
 
-        this.parentElement.appendChild(this.element);
+class StudentPickerApp {
+    constructor({ students, images }) {
+        this.parent = document.body;
+        this.students = students.map((student, index) => {
+            return {
+                name: student,
+                id: index,
+                disabled: false
+            };
+        });
+        this.images = images;
+
+        this.pickerControls = new PickerControls(this.parent);
+        this.studentList = new StudentList(this.parent, students);
+        this.studentGallery = new StudentGallery(this.parent);
+
+        this.handleRandomiseClick();
+        this.handleResetClick();
+    }
+
+    handleRandomiseClick() {
+        this.parent.addEventListener(CLICK_RANDOMISE, (event) => {
+            if(typeof event.detail.callback !== 'function') {
+                throw new StudentPickerAppError('No callback found for randomise button');
+            }
+
+            this.pickRandomStudent()
+                .then(() => {
+                    event.detail.callback();
+                });
+        });
+    }
+
+    handleResetClick() {
+        this.parent.addEventListener(CLICK_RESET, () => {
+            this.students = this.students.map((student) => {
+                return {
+                    ...student,
+                    disabled: false
+                }
+            });
+
+            this.studentList.enableAllStudents();
+            this.studentGallery.displayImage('');
+            this.studentGallery.displayName('');
+        });
     }
 
     pickRandomStudent() {
-        const randomId = Math.floor(Math.random() * this.students.length);
-        const name = this.students[randomId];
 
-        return [ id, name ];
+        this.studentGallery.displayImage('');
+
+        return new Promise((resolve) => {
+
+            const count = 10;
+
+            let rolls = 0;
+
+            const roll = () => {
+    
+                setTimeout(() => {
+                    const studentsToQuestion = this.students.filter((student) => !student.disabled);
+
+                    const randomStudent = pickRandomArrayItem(studentsToQuestion);
+
+                    this.studentGallery.displayName(randomStudent.name);
+                    this.studentList.highlightStudent(randomStudent.id);
+    
+                    if(rolls !== count) {
+                        rolls += 1;
+                        roll();
+                    } else {
+                        const randomImage = pickRandomArrayItem(this.images);
+
+                        this.studentGallery.displayImage(randomImage);
+                        this.disableStudent(randomStudent.id);
+
+                        resolve();
+                    }
+    
+                }, 100);
+            }
+    
+            roll();
+
+        });
     }
 
-    pickRandomImage() {
-        const range = this.imageUrls.length;
-        const id = Math.floor(Math.random() * range);
-        
-        return this.imageUrls[id];
-    }
-
-    setRandomStudentName(removeFromList, showImage) {
-        if(!this.students.length) {
-            this.render('No more students to pick from', showImage);
-        }
-
-        const [ id, name ] = this.pickRandomStudent();
-        const imageUrl = showImage
-            ? this.pickRandomImage()
-            : '';
-
-        if(removeFromList) {
-            this.students.splice(id, 1);
-        }
-
-        this.render(name, imageUrl);
-    }
-
-    randomiseDisplay() {
-        const step = 100;
-        const fastInterval = 50;
-        const fastIntervalStep = 5;
-        const fastIntervalThreshold = 300;
-        const intervalEnd = 900;
-
-        let timeout = 1;
-
-        const roll = () => {
-            const interval = timeout < fastIntervalThreshold
-                ? fastInterval
-                : timeout;
-
-            setTimeout(() => {
-                const lastRoll = timeout >= intervalEnd;
-
-                this.setRandomStudentName(lastRoll, lastRoll);
-
-                if(lastRoll) {
-                    return;
-                }
-
-                if(timeout < fastIntervalThreshold) {
-                    timeout += fastIntervalStep;
-                } else {
-                    timeout += step;
-                }
-
-                roll();
-
-            }, interval);
-        }
-
-        roll();
-    }
-
-    reset() {
-        this.render();
-        this.students = [...this.originalStudentList];
-    }
-
-    render(text = '', imageSrc = '') {
-        this.textNode.innerText = text;
-        this.imageNode.setAttribute('src', imageSrc);
+    disableStudent(id) {
+        this.students[id].disabled = true;
+        this.studentList.disableStudent(id);
     }
 }
+
+new StudentPickerApp({ students, images });

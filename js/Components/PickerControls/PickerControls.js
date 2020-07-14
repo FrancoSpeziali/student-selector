@@ -1,43 +1,44 @@
-import { CLICK_RANDOMISE, CLICK_RESET } from '../../constants/eventTypes.js';
-
-class PickerControlsError extends Error {};
-
 export default class PickerControls {
-    constructor(parent) {
-        this.parent = parent;
-        this.resetButtonNode = document.createElement('button');
-        this.resetButtonNode.textContent = 'Reset';
+  constructor({ parent, handleRandomiseClick, handleResetClick }) {
+    this.parent = parent;
+    this.resetButtonNode = document.createElement("button");
+    this.resetButtonNode.textContent = "Reset";
 
-        this.randomiseButtonNode = document.createElement('button');
-        this.randomiseButtonNode.textContent = 'Randomise';
+    this.randomiseButtonNode = document.createElement("button");
+    this.randomiseButtonNode.textContent = "Randomise";
 
-        parent.append(this.resetButtonNode, this.randomiseButtonNode);
+    parent.append(this.resetButtonNode, this.randomiseButtonNode);
 
-        this.handleResetClick();
-        this.handleRandomiseClick();
-    }
+    this.handleRandomiseClick = handleRandomiseClick;
+    this.handleResetClick = handleResetClick;
 
-    handleResetClick() {
-        this.resetButtonNode.addEventListener('click', () => {
-            const event = new CustomEvent(CLICK_RESET);
+    this.listenForRandomiseClick();
+    this.listenForResetClick();
+  }
 
-            this.parent.dispatchEvent(event);
-        });
-    }
+  listenForResetClick() {
+    this.resetButtonNode.addEventListener("click", () => {
+      this.handleResetClick();
+    });
+  }
 
-    handleRandomiseClick() {
-        this.randomiseButtonNode.addEventListener('click', () => {
-            const event = new CustomEvent(CLICK_RANDOMISE, {
-                detail: {
-                    callback: () => {
-                        this.randomiseButtonNode.removeAttribute('disabled');
-                    }
-                }
-            });
+  listenForRandomiseClick() {
+    this.randomiseButtonNode.addEventListener("click", () => {
+      this.disableButtons();
 
-            this.randomiseButtonNode.setAttribute('disabled', 'disabled');
+      this.handleRandomiseClick().then(() => {
+        this.enableButtons();
+      });
+    });
+  }
 
-            this.parent.dispatchEvent(event);
-        });
-    }
+  disableButtons() {
+    this.randomiseButtonNode.setAttribute("disabled", "disabled");
+    this.resetButtonNode.setAttribute("disabled", "disabled");
+  }
+
+  enableButtons() {
+    this.randomiseButtonNode.removeAttribute("disabled");
+    this.resetButtonNode.removeAttribute("disabled");
+  }
 }

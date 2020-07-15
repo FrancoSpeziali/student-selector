@@ -5,7 +5,7 @@ import { pickRandomArrayItem } from "./lib/lib.js";
 import { studentNames, imageUrls } from "./config.js";
 
 const gallery = new Gallery({
-  parent: document.body,
+  parent: document.querySelector('#gallery'),
   imageUrls
 });
 
@@ -14,7 +14,7 @@ const studentList = new StudentList({
   studentNames
 });
 
-const pickRandomStudent = () => {
+const randomise = () => {
   gallery.clearAll();
 
   return new Promise((resolve) => {
@@ -24,11 +24,7 @@ const pickRandomStudent = () => {
 
     const roll = () => {
       setTimeout(() => {
-        const studentNamesToQuestion = studentList.students.filter(
-          (student) => !student.disabled
-        );
-
-        const randomStudent = pickRandomArrayItem(studentNamesToQuestion);
+        const randomStudent = pickRandomArrayItem(studentList.enabledStudents);
 
         gallery.displayName(randomStudent.name);
         studentList.highlightStudent(randomStudent.id);
@@ -56,6 +52,6 @@ const reset = () => {
 
 new PickerControls({
   parent: document.body,
-  handleRandomiseClick: pickRandomStudent,
+  handleRandomiseClick: randomise,
   handleResetClick: reset
 });

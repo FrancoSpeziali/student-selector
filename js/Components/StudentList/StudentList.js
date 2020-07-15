@@ -16,8 +16,8 @@ export default class StudentList {
     this.render();
   }
 
-  get students() {
-    return this._students;
+  get enabledStudents() {
+    return this._students.filter((student) => !student.disabled);
   }
 
   render() {

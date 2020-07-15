@@ -43,3 +43,6 @@ export const imageUrls = [
   "https://media.giphy.com/media/gE6IUBRWZd744/source.gif",
   "https://media.giphy.com/media/cO39srN2EUIRaVqaVq/source.gif",
 ];
+
+export const studentRotations = 12;
+export const highestRotationDelay = 700;

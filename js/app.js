@@ -1,57 +1,54 @@
 import PickerControls from "./Components/PickerControls/PickerControls.js";
 import StudentList from "./Components/StudentList/StudentList.js";
 import Gallery from "./Components/Gallery/Gallery.js";
-import { pickRandomArrayItem } from "./lib/lib.js";
-import { studentNames, imageUrls } from "./config.js";
-
-const gallery = new Gallery({
-  parent: document.querySelector('#gallery'),
-  imageUrls
-});
-
-const studentList = new StudentList({
-  parent: document.body,
-  studentNames
-});
+import { pickRandomArrayItem, runAtIntervals } from "./lib/lib.js";
+import {
+  studentNames,
+  imageUrls,
+  studentRotations,
+  highestRotationDelay,
+} from "./config.js";
 
 const randomise = () => {
   gallery.clearAll();
+  pickerControls.disableButtons();
 
-  return new Promise((resolve) => {
-    const count = 20;
+  let randomStudent;
 
-    let rolls = 0;
-
-    const roll = () => {
-      setTimeout(() => {
-        const randomStudent = pickRandomArrayItem(studentList.enabledStudents);
-
-        gallery.displayName(randomStudent.name);
-        studentList.highlightStudent(randomStudent.id);
-
-        if (rolls !== count) {
-          rolls += 1;
-          roll();
-        } else {
-          gallery.displayRandomImage();
-          studentList.toggleDisableStudent(randomStudent.id);
-
-          resolve();
-        }
-      }, 120);
-    };
-
-    roll();
+  const randomiseStudent = runAtIntervals({
+    intervals: studentRotations,
+    intervalAzmiuth: highestRotationDelay,
+    callbackInterval: () => {
+      randomStudent = pickRandomArrayItem(studentList.enabledStudents);
+      gallery.displayName(randomStudent.name);
+      studentList.highlightStudent(randomStudent.id);
+    },
   });
-}
+
+  randomiseStudent.then(() => {
+    gallery.displayRandomImage();
+    studentList.toggleDisableStudent(randomStudent.id);
+    pickerControls.enableButtons();
+  });
+};
 
 const reset = () => {
   gallery.clearAll();
   studentList.enableAllStudents();
-}
+};
 
-new PickerControls({
+const gallery = new Gallery({
+  parent: document.querySelector("#gallery"),
+  imageUrls,
+});
+
+const studentList = new StudentList({
+  parent: document.body,
+  studentNames,
+});
+
+const pickerControls = new PickerControls({
   parent: document.body,
   handleRandomiseClick: randomise,
-  handleResetClick: reset
+  handleResetClick: reset,
 });

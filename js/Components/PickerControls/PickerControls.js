@@ -24,11 +24,7 @@ export default class PickerControls {
 
   listenForRandomiseClick() {
     this.randomiseButtonNode.addEventListener("click", () => {
-      this.disableButtons();
-
-      this.handleRandomiseClick().then(() => {
-        this.enableButtons();
-      });
+      this.handleRandomiseClick();
     });
   }
 

@@ -1,45 +1,92 @@
 export default class StudentList {
-  constructor(parent, list) {
-    this.list = list;
+  constructor({ parent, studentNames }) {
     this.listNode = document.createElement("ul");
 
     parent.append(this.listNode);
 
-    this.createListItems();
+    this._students = studentNames.map((student, index) => {
+      return {
+        name: student,
+        id: index,
+        disabled: false,
+        highlighted: false
+      };
+    });
+
+    this.render();
   }
 
-  createListItems() {
-    this.list.forEach((item) => {
-      const node = document.createElement("li");
+  get students() {
+    return this._students;
+  }
 
-      node.textContent = item;
+  render() {
+
+    if(this.listNode.hasChildNodes()) {
+      do {
+        this.listNode.firstChild.remove();
+      }
+      while(this.listNode.hasChildNodes());
+    }
+
+    this._students.forEach((student) => {
+      const node = document.createElement("li");
+      const toggleStudent = document.createElement("button");
+
+      toggleStudent.onclick = () => {
+        this.toggleDisableStudent(student.id);
+      };
+
+      toggleStudent.textContent = "T";
+
+      node.textContent = student.name;
+      node.dataset.id = student.id;
+
+      if(student.disabled) {
+        node.classList.add("disable");
+      }
+
+      if(student.highlighted) {
+        node.classList.add("highlight");
+      }
+
+      node.append(toggleStudent);
 
       this.listNode.append(node);
     });
   }
 
+  /**
+   * Only 1 student can be highlighted at a time
+   */
   highlightStudent(id) {
-    const nodes = this.listNode.querySelectorAll("li");
+    const existing = this._students.find(student => student.highlighted);
 
-    nodes.forEach((node) => {
-      node.classList.remove("highlight");
-    });
+    if(existing) {
+      existing.highlighted = false;
+    }
 
-    nodes[id].classList.add("highlight");
+    const target = this._students.find(student => student.id === id);
+
+    target.highlighted = !target.highlighted;
+
+    this.render();
   }
 
-  disableStudent(id) {
-    const nodes = this.listNode.querySelectorAll("li");
+  toggleDisableStudent(id) {
+    const target = this._students.find(student => student.id === id);
 
-    nodes[id].classList.add("disable");
+    target.disabled = !target.disabled;
+
+    this.render();
   }
 
   enableAllStudents() {
-    const nodes = this.listNode.querySelectorAll("li");
-
-    nodes.forEach((node) => {
-      node.classList.remove("highlight");
-      node.classList.remove("disable");
+    this._students.forEach((student) => {
+      student.disabled = false;
+      student.highlighted = false;
     });
+
+    this.render();
   }
 }

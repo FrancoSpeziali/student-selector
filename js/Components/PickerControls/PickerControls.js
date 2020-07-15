@@ -33,12 +33,12 @@ export default class PickerControls {
   }
 
   disableButtons() {
-    this.randomiseButtonNode.setAttribute("disabled", "disabled");
-    this.resetButtonNode.setAttribute("disabled", "disabled");
+    this.randomiseButtonNode.disabled = true;
+    this.resetButtonNode.disabled = true;
   }
 
   enableButtons() {
-    this.randomiseButtonNode.removeAttribute("disabled");
-    this.resetButtonNode.removeAttribute("disabled");
+    this.randomiseButtonNode.disabled = false;
+    this.resetButtonNode.disabled = false;
   }
 }

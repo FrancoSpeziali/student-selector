@@ -6,7 +6,7 @@ body {
 }
 
 .highlight {
-    color: red;
+    color: red !important;
 }
 
 .disable {
